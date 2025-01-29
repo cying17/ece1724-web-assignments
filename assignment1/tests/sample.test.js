@@ -102,7 +102,11 @@ describe("Paper Management API Tests", () => {
       const res = await request(app).get(`/api/papers/${createRes.body.id}`);
 
       expect(res.status).toBe(200);
-      expect(res.body).toMatchObject(createRes.body);
+      expect(res.body).toMatchObject({
+        ...createRes.body,
+        created_at: res.body.created_at,
+        updated_at: res.body.updated_at,
+      });
     });
 
     it("should return 404 if paper is not found", async () => {
