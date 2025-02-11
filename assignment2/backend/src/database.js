@@ -17,10 +17,15 @@ const dbOperations = {
       //   - email: string (optional)
       //   - affiliation: string (optional)
       //
-      // Use await prisma.paper.create()
-      // Use connectOrCreate to handle authors (check Prisma docs:
-      // https://www.prisma.io/docs/orm/prisma-client/queries/relation-queries#connect-or-create-a-record)
-      // Make sure to include authors in the response
+      // Steps:
+      // 1. For each author in paperData.authors:
+      //    - First try to find an existing author with matching name, email, and affiliation
+      //    - If not found, create a new author
+      // 2. Create the paper and connect it with the authors
+      // 3. Make sure to include authors in the response
+      //
+      // Hint: Use prisma.author.findFirst() to find existing authors
+      // and prisma.paper.create() with { connect: [...] } to connect authors
     } catch (error) {
       throw error;
     }
