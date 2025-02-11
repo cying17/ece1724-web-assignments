@@ -117,26 +117,12 @@ const validateResourceId = (req, res, next) => {
 
 // Error handler middleware
 const errorHandler = (err, req, res, next) => {
-  // TODO: Implement error handling
-  //
-  // Handle different types of errors:
-  // 1. Validation errors (400):
-  // {
-  //   "error": "Validation Error",
-  //   "messages": ["Title is required", "Valid year after 1900 is required"]
-  // }
-  //
-  // 2. Not found errors (404):
-  // {
-  //   "error": "Not found"
-  // }
-  //
-  // 3. Constraint errors (400) - for author deletion:
-  // {
-  //   "error": "Constraint Error",
-  //   "message": "Cannot delete author: they are the only author of one or more papers"
-  // }
   console.error(err);
+
+  return res.status(500).json({
+    error: "Internal Server Error",
+    message: "An unexpected error occurred",
+  });
 };
 
 module.exports = {
