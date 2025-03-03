@@ -1,0 +1,41 @@
+/* Styles for paper list component */
+/* DO NOT MODIFY THIS FILE */
+
+.container {
+  margin: 20px 0;
+}
+
+.paper {
+  background: white;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.paperTitle {
+  color: var(--primary-color);
+  margin-bottom: 10px;
+}
+
+.paper p {
+  margin: 8px 0;
+  color: var(--text-color);
+}
+
+.paper button {
+  margin-right: 10px;
+  margin-top: 10px;
+}
+
+.paper button:first-of-type {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.paper button:last-of-type {
+  background-color: var(--error-color);
+  color: white;
+  border-color: var(--error-color);
+}

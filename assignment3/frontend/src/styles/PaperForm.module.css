@@ -1,0 +1,36 @@
+/* Styles for paper form component */
+/* DO NOT MODIFY THIS FILE */
+
+.form {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.form div {
+  margin-bottom: 15px;
+}
+
+.form button[type="submit"] {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  margin-right: 10px;
+}
+
+.form button[type="button"] {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.error {
+  color: var(--error-color);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* Style for the multi-select dropdown */
+.form select[multiple] {
+  height: 120px;
+}
