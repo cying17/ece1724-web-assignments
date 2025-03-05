@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const db = require("../database");
 const middleware = require("../middleware");
+const {validatePaperInput, validateAuthorInput} = require("../middleware");
 
 // GET /api/authors
 router.get(
@@ -26,6 +27,10 @@ router.get(
       //      limit,    // Current page size
       //      offset    // Current page offset
       //    });
+
+      const authors = await db.getAllAuthors(req.query);
+
+      return res.status(200).json(authors);
     } catch (error) {
       next(error);
     }
@@ -45,6 +50,17 @@ router.get("/:id", middleware.validateResourceId, async (req, res, next) => {
     //
     // 4. Send JSON response with status 200:
     //    res.json(author);
+
+    const id = parseInt(req.params.id);
+    const author = await db.getAuthorById(id);
+
+    if (!author) {
+      return res.status(404).json({
+        error: "Author not found"
+      })
+    }
+
+    return res.status(200).json(author);
   } catch (error) {
     next(error);
   }
@@ -53,7 +69,6 @@ router.get("/:id", middleware.validateResourceId, async (req, res, next) => {
 // POST /api/authors
 router.post("/", async (req, res, next) => {
   try {
-    // TODO: Implement POST /api/authors
     //
     // 1. Validate request body using middleware.validateAuthorInput
     //
@@ -63,6 +78,18 @@ router.post("/", async (req, res, next) => {
     //
     // 4. Send JSON response with status 201:
     //    res.status(201).json(author);
+
+    const errors = validateAuthorInput(req.body);
+
+    if (errors.length > 0) {
+      return res
+          .status(400)
+          .json({ error: "Validation Error", messages: errors })
+    }
+
+    const author = await db.createAuthor(req.body);
+
+    res.status(201).json(author);
   } catch (error) {
     next(error);
   }
@@ -85,6 +112,27 @@ router.put("/:id", middleware.validateResourceId, async (req, res, next) => {
     //
     // 6. Send JSON response with status 200:
     //    res.json(author);
+
+    const id = parseInt(req.params.id);
+    const errors = validateAuthorInput(req.body);
+
+    if (errors.length > 0) {
+      return res
+          .status(400)
+          .json({ error: "Validation Error", messages: errors })
+    }
+
+    const author = await db.getAuthorById(id);
+
+    if (!author) {
+      return res.status(404).json({
+        error: "Author not found"
+      })
+    }
+
+    const updated_author = await db.updateAuthor(id, req.body);
+
+    res.status(200).json(updated_author);
   } catch (error) {
     next(error);
   }
@@ -109,6 +157,20 @@ router.delete("/:id", middleware.validateResourceId, async (req, res, next) => {
     //
     // 5. Send no content response with status 204:
     //    res.status(204).end();
+
+    const id = parseInt(req.params.id);
+
+    const author = await db.getAuthorById(id);
+
+    if (!author) {
+      return res.status(404).json({
+        error: "Author not found"
+      })
+    }
+
+    await db.deleteAuthor(id);
+
+    return res.status(204).end();
   } catch (error) {
     next(error);
   }

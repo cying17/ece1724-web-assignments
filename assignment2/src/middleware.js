@@ -7,7 +7,6 @@ const requestLogger = (req, res, next) => {
 // Validate paper input for Assignment 2
 // Note: This is different from Assignment 1 as it handles authors as objects
 const validatePaperInput = (paper) => {
-  // TODO: Implement paper validation
   //
   // Required fields:
   // - title: non-empty string
@@ -26,13 +25,38 @@ const validatePaperInput = (paper) => {
   //   "Valid year after 1900 is required",
   //   "At least one author is required"
   // ]
+  const {title, publishedIn, year, authors} = paper;
   const errors = [];
+
+  if (!title || typeof title !== 'string' || title.trim().length === 0) {
+    errors.push("Title is required");
+  }
+  if (!publishedIn || typeof publishedIn !== 'string' || publishedIn.trim().length === 0) {
+    errors.push("Published venue is required");
+  }
+  if (!year) {
+    errors.push("Published year is required");
+  }
+  if (year && (!Number.isInteger(Number(year)) || year <= 1900)) {
+    errors.push("Valid year after 1900 is required");
+  }
+
+  if (!Array.isArray(authors) || authors.length === 0) {
+    errors.push("At least one author is required");
+  } else {
+    for (const author of authors) {
+      if (!author.name || typeof author.name !== 'string' || author.name.trim().length === 0) {
+        errors.push("Author name is required");
+        break;
+      }
+    }
+  }
+
   return errors;
 };
 
 // Validate author input
 const validateAuthorInput = (author) => {
-  // TODO: Implement author validation
   //
   // Required fields:
   // - name: non-empty string
@@ -46,12 +70,16 @@ const validateAuthorInput = (author) => {
   //   "Name is required"
   // ]
   const errors = [];
+
+  if (!author.name || typeof author.name !== 'string' || author.name.trim().length === 0) {
+    errors.push("Name is required");
+  }
+
   return errors;
 };
 
 // Validate query parameters for papers
 const validatePaperQueryParams = (req, res, next) => {
-  // TODO: Implement query parameter validation for papers
   //
   // Validate:
   // - year: optional, must be integer > 1900 if provided
@@ -78,11 +106,84 @@ const validatePaperQueryParams = (req, res, next) => {
   // }
   //
   // If valid, call next()
+
+  const {year, publishedIn, author, limit, offset } = req.query;
+  let hasError = false;
+
+  if (year) {
+    if (!/^\d+$/.test(year)) {
+      hasError = true;
+    } else {
+      const parsedYear = parseInt(year, 10);
+      if (isNaN(parsedYear) || parsedYear <= 1900) {
+        hasError = true;
+      } else {
+        req.query.year = parsedYear;
+      }
+    }
+  }
+
+  if (publishedIn && (typeof publishedIn !== 'string' || publishedIn.trim().length === 0)) {
+    hasError = true;
+  }
+
+  if (author) {
+    if (typeof author === 'string') {
+      if (author.trim().length === 0) {
+        hasError = true;
+      }
+    } else if (Array.isArray(author)) {
+      if (author.length === 0) {
+        hasError = true;
+      }
+      for (const a of author) {
+        if (typeof a !== 'string' || a.trim().length === 0) {
+          hasError = true;
+        }
+      }
+    } else {
+      hasError = true;
+    }
+  }
+
+  if (limit) {
+    if (!/^\d+$/.test(limit)) {
+      hasError = true;
+    } else {
+      const parsedLimit = parseInt(limit, 10);
+      if (isNaN(parsedLimit) || parsedLimit <= 0 || parsedLimit > 100) {
+        hasError = true;
+      } else {
+        req.query.limit = parsedLimit;
+      }
+    }
+  }
+
+  if (offset) {
+    if (!/^\d+$/.test(offset)) {
+      hasError = true;
+    } else {
+      const parsedOffset = parseInt(offset, 10);
+      if (isNaN(parsedOffset) || parsedOffset < 0) {
+        hasError = true;
+      } else {
+        req.query.offset = parsedOffset;
+      }
+    }
+  }
+
+  if (hasError) {
+    return res.status(400).json({
+      error: "Validation Error",
+      message: "Invalid query parameter format"
+    })
+  }
+
+  next()
 };
 
 // Validate query parameters for authors
 const validateAuthorQueryParams = (req, res, next) => {
-  // TODO: Implement query parameter validation for authors
   //
   // Validate:
   // - name: optional, string
@@ -98,12 +199,57 @@ const validateAuthorQueryParams = (req, res, next) => {
   // }
   //
   // If valid, call next()
+
+  const {name, affiliation, limit, offset } = req.query;
+  let hasError = false;
+
+  if (name && (typeof name !== 'string' || name.trim().length === 0)) {
+    hasError = true;
+  }
+
+  if (affiliation && (typeof affiliation !== 'string' || affiliation.trim().length === 0)) {
+    hasError = true;
+  }
+
+  if (limit) {
+    if (!/^\d+$/.test(limit)) {
+      hasError = true;
+    } else {
+      const parsedLimit = parseInt(limit, 10);
+      if (isNaN(parsedLimit) || parsedLimit <= 0 || parsedLimit > 100) {
+        hasError = true;
+      } else {
+        req.query.limit = parsedLimit;
+      }
+    }
+  }
+
+  if (offset) {
+    if (!/^\d+$/.test(offset)) {
+      hasError = true;
+    } else {
+      const parsedOffset = parseInt(offset, 10);
+      if (isNaN(parsedOffset) || parsedOffset < 0) {
+        hasError = true;
+      } else {
+        req.query.offset = parsedOffset;
+      }
+    }
+  }
+
+  if (hasError) {
+    return res.status(400).json({
+      error: "Validation Error",
+      message: "Invalid query parameter format"
+    })
+  }
+
+  next()
 };
 
 // Validate resource ID parameter
 // Used for both paper and author endpoints
 const validateResourceId = (req, res, next) => {
-  // TODO: Implement ID validation
   //
   // If ID is invalid, return:
   // Status: 400
@@ -113,11 +259,43 @@ const validateResourceId = (req, res, next) => {
   // }
   //
   // If valid, call next()
+
+  const id = req.params.id ? Number(req.params.id) : null;
+
+  if (!id || !Number.isInteger(id) || id <= 0) {
+    return res
+        .status(400)
+        .json({
+          error: "Validation Error",
+          message: "Invalid ID format"
+        });
+  }
+
+  next();
 };
 
 // Error handler middleware
 const errorHandler = (err, req, res, next) => {
   console.error(err);
+
+  if (err.type === 'author_not_found') {
+    return res.status(404).json({
+      error: "Author not found"
+    })
+  }
+
+  if (err.type === 'paper_not_found') {
+    return res.status(404).json({
+      error: "Paper not found"
+    })
+  }
+
+  if (err.type === 'constraint') {
+    return res.status(400).json({
+      error: "Constraint Error",
+      message: "Cannot delete author: they are the only author of one or more papers"
+    })
+  }
 
   return res.status(500).json({
     error: "Internal Server Error",
